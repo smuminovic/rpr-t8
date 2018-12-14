@@ -24,12 +24,16 @@ public class Controller {
     public Button searchBtn;
     public ListView list;
     public List<String> result1;
+    public Button stopBtn;
+    public ProgressBar progressBar;
+    public boolean prekidanje = false;
     private Thread thread1, thread2;
 
     public Controller() {
         text = new SimpleStringProperty("");
         lista = new SimpleListProperty<>();
         result1 = Collections.synchronizedList(new ArrayList<>());
+        progressBar = new ProgressBar(0);
     }
 
     @FXML
@@ -37,15 +41,19 @@ public class Controller {
         uzorak.textProperty().bindBidirectional(text);
         list.itemsProperty().bindBidirectional(lista);
         lista.set(FXCollections.observableArrayList(result1));
+        stopBtn.setDisable(true);
+        prekidanje = false;
+        progressBar.setProgress(0);
     }
 
-    public void dajFajloveKojiSePodudaraju(File f) {
+    public void traziFajlove(File f) {
+        if (prekidanje) return;
         try {
             File[] files = f.listFiles();
             if (files == null) return;
             for (File file : files) {
                 if (file.isDirectory()) {
-                    dajFajloveKojiSePodudaraju(file);
+                    traziFajlove(file);
                 } else {
                     if (file.getCanonicalPath().toLowerCase().contains(uzorak.getText().toLowerCase())) {
                         String result = file.getCanonicalPath();
@@ -65,10 +73,16 @@ public class Controller {
         Runnable r1 = () -> {
             searchBtn.setDisable(true);
             uzorak.setDisable(true);
-            dajFajloveKojiSePodudaraju(new File(System.getProperty("user.home")));
+            stopBtn.setDisable(false);
+            traziFajlove(new File(System.getProperty("user.home")));
         };
         Runnable r2 = () -> {
             for (int i = 1; i <= 1000; i++) {
+                if (prekidanje) {
+                  progressBar.setProgress(1000);
+                break;
+                }
+                progressBar.setProgress(i / 1000.0);
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -80,5 +94,15 @@ public class Controller {
         thread2 = new Thread(r2);
         thread1.start();
         thread2.start();
+    }
+
+    public void clickOnStopBtn(ActionEvent actionEvent) {
+        if (thread1 == null || thread2 == null) {
+            return;
+        }
+        prekidanje = true;
+        searchBtn.setDisable(false);
+        uzorak.setDisable(false);
+        stopBtn.setDisable(true);
     }
 }
