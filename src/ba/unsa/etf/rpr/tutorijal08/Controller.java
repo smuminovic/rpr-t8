@@ -6,16 +6,23 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
+import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 
 public class Controller {
     public SimpleStringProperty text;
@@ -28,6 +35,7 @@ public class Controller {
     public ProgressBar progressBar;
     public boolean prekidanje = false;
     private Thread thread1, thread2;
+    NoviController noviController;
 
     public Controller() {
         text = new SimpleStringProperty("");
@@ -97,12 +105,25 @@ public class Controller {
     }
 
     public void clickOnStopBtn(ActionEvent actionEvent) {
-        if (thread1 == null || thread2 == null) {
-            return;
-        }
         prekidanje = true;
         searchBtn.setDisable(false);
         uzorak.setDisable(false);
         stopBtn.setDisable(true);
+    }
+
+    public void listaKlikunta(MouseEvent mouseEvent) {
+        Parent root = null;
+        try {
+            Stage nova = new Stage();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("NoviProzor.fxml"));
+            loader.load();
+            noviController = loader.getController();
+            nova.setTitle("Novi prozor");
+            nova.setScene(new Scene(loader.getRoot(),  USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
+            nova.show();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
